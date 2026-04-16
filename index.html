@@ -94,7 +94,7 @@
   <body>
     <div class="wrap">
       <header>
-        <a href="/">
+        <a href="./">
           <div class="brand">My Blog</div>
         </a>
         <div class="tagline">A Hugo blog managed from an Obsidian vault.</div>
@@ -112,7 +112,7 @@
   <section class="list">
     
       <article class="card">
-        <h2><a href="/blog/posts/hello-hugo-obsidian/">Hello Hugo Obsidian</a></h2>
+        <h2><a href="./posts/hello-hugo-obsidian/">Hello Hugo Obsidian</a></h2>
         <div class="meta">2026-04-11</div>
         
           <p><h1 id="hello-hugo-obsidian">Hello Hugo Obsidian</h1>
@@ -120,7 +120,21 @@
 <p>这篇文件放在 <code>blog/content/posts/</code>，它会通过软链接出现在 Hugo 的 <code>site/content/posts/</code> 下，因此可以被 Hugo 直接读取。</p>
 <p>后续你在 Obsidian 中写博客正文时，主要就在这个目录里创建新的 Markdown 文件。</p>
 <p>如果你需要插图，建议把图片放进 <code>blog/assets/images/</code>，然后在正文里使用类似下面的路径：</p>
-<p><img src="/images/example.png" alt="示例图片"></p>
+<p><img src="./images/example.png" alt="示例图片"></p>
+<p>发布前，把 front matter 里的 <code>draft</code> 改为 <code>false</code>。</p></p>
+        
+      </article>
+    
+      <article class="card">
+        <h2><a href="./posts/hello-hugo-obsidian-copy/"></a></h2>
+        <div class="meta">0001-01-01</div>
+        
+          <p><h1 id="hello-hugo-obsidian222">Hello Hugo Obsidian222</h1>
+<p>这是这套目录结构下的第一篇示例文章222。</p>
+<p>这篇文件放在 <code>blog/content/posts/</code>，它会通过软链接出现在 Hugo 的 <code>site/content/posts/</code> 下，因此可以被 Hugo 直接读取。</p>
+<p>后续你在 Obsidian 中写博客正文时，主要就在这个目录里创建新的 Markdown 文件。</p>
+<p>如果你需要插图，建议把图片放进 <code>blog/assets/images/</code>，然后在正文里使用类似下面的路径：</p>
+<p><img src="./images/example.png" alt="示例图片"></p>
 <p>发布前，把 front matter 里的 <code>draft</code> 改为 <code>false</code>。</p></p>
         
       </article>

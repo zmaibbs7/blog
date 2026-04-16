@@ -2,15 +2,24 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://zmaibbs7.github.io/blog/pages/about/</loc>
+    <lastmod>2026-04-11T22:00:00+08:00</lastmod>
+  </url><url>
+    <loc>https://zmaibbs7.github.io/blog/pages/testpages/</loc>
+    <lastmod>2026-04-11T22:00:00+08:00</lastmod>
+  </url><url>
     <loc>https://zmaibbs7.github.io/blog/posts/hello-hugo-obsidian/</loc>
     <lastmod>2026-04-11T22:00:00+08:00</lastmod>
   </url><url>
     <loc>https://zmaibbs7.github.io/blog/</loc>
     <lastmod>2026-04-11T22:00:00+08:00</lastmod>
   </url><url>
+    <loc>https://zmaibbs7.github.io/blog/pages/</loc>
+    <lastmod>2026-04-11T22:00:00+08:00</lastmod>
+  </url><url>
     <loc>https://zmaibbs7.github.io/blog/posts/</loc>
     <lastmod>2026-04-11T22:00:00+08:00</lastmod>
   </url><url>
-    <loc>https://zmaibbs7.github.io/blog/pages/</loc>
+    <loc>https://zmaibbs7.github.io/blog/posts/hello-hugo-obsidian-copy/</loc>
   </url>
 </urlset>
