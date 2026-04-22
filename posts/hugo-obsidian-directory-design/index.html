@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title> | My Blog</title>
+    <meta name="description" content="A Hugo blog managed from an Obsidian vault.">
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f1e8;
+        --paper: #fffdf8;
+        --ink: #1f1f1c;
+        --muted: #5f5b53;
+        --line: #d9d1c3;
+        --accent: #8a4b2a;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        background:
+          radial-gradient(circle at top, #efe5d3 0%, #f5f1e8 40%, #f5f1e8 100%);
+        color: var(--ink);
+      }
+
+      .wrap {
+        width: min(920px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      header {
+        padding: 40px 0 24px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      header a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .brand {
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      .tagline {
+        margin-top: 8px;
+        color: var(--muted);
+      }
+
+      main {
+        padding: 28px 0 64px;
+      }
+
+      .card {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(53, 42, 23, 0.05);
+      }
+
+      .list {
+        display: grid;
+        gap: 16px;
+      }
+
+      article h2,
+      article h1 {
+        margin-top: 0;
+      }
+
+      article a {
+        color: var(--accent);
+      }
+
+      .meta {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      footer {
+        padding: 24px 0 48px;
+        color: var(--muted);
+        border-top: 1px solid var(--line);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <a href="../../">
+          <div class="brand">My Blog</div>
+        </a>
+        <div class="tagline">A Hugo blog managed from an Obsidian vault.</div>
+      </header>
+
+      <main>
+        
+  <article class="card">
+    <h1></h1>
+    <div class="meta">0001-01-01</div>
+    <div><h1 id="hugo--obsidian-目录设计说明">Hugo + Obsidian 目录设计说明</h1>
+<h2 id="目标">目标</h2>
+<p>这套目录设计的目标是把 Obsidian 的笔记管理能力和 Hugo 的静态站点生成能力解耦开来：</p>
+<ul>
+<li>Obsidian 负责管理整个笔记仓库</li>
+<li>Hugo 只负责把博客相关的 Markdown 转成静态网页</li>
+<li>GitHub Pages 只负责发布 Hugo 生成的网站</li>
+</ul>
+<p>这样做的好处是，博客内容和其他私人笔记、项目笔记、日记不会混在一起，同时 Hugo 站点的职责也保持单一。</p>
+<h2 id="设计原则">设计原则</h2>
+<p>目录设计遵循下面几条原则：</p>
+<ul>
+<li><code>notes/</code> 是 Obsidian Vault 根目录，也是日常使用的主目录</li>
+<li><code>blog/</code> 是公开博客内容源，只放准备发布的内容</li>
+<li><code>site/</code> 是 Hugo 工程目录，只负责构建和发布</li>
+<li>非博客内容默认不进入 Hugo 发布链路</li>
+<li>第一版用相对路径软链接连接 <code>blog/</code> 和 <code>site/</code></li>
+</ul>
+<h2 id="推荐目录结构">推荐目录结构</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>notes/
+</span></span><span style="display:flex;"><span>  .obsidian/
+</span></span><span style="display:flex;"><span>  inbox/
+</span></span><span style="display:flex;"><span>  daily/
+</span></span><span style="display:flex;"><span>  knowledge/
+</span></span><span style="display:flex;"><span>  project/
+</span></span><span style="display:flex;"><span>  blog/
+</span></span><span style="display:flex;"><span>    content/
+</span></span><span style="display:flex;"><span>      posts/
+</span></span><span style="display:flex;"><span>      pages/
+</span></span><span style="display:flex;"><span>    assets/
+</span></span><span style="display:flex;"><span>      images/
+</span></span><span style="display:flex;"><span>  site/
+</span></span><span style="display:flex;"><span>    content/
+</span></span><span style="display:flex;"><span>      posts -&gt; ../../blog/content/posts
+</span></span><span style="display:flex;"><span>      pages -&gt; ../../blog/content/pages
+</span></span><span style="display:flex;"><span>    static/
+</span></span><span style="display:flex;"><span>      images -&gt; ../../blog/assets/images
+</span></span><span style="display:flex;"><span>    .github/
+</span></span><span style="display:flex;"><span>      workflows/
+</span></span><span style="display:flex;"><span>        hugo.yml
+</span></span><span style="display:flex;"><span>    hugo.toml
+</span></span></code></pre></div><h2 id="各目录职责">各目录职责</h2>
+<h3 id="notes"><code>notes/</code></h3>
+<p>这是 Obsidian 的 Vault 根目录。你在 Obsidian 里应该直接打开这个目录，而不是只打开 <code>blog/</code> 或 <code>site/</code>。</p>
+<h3 id="blog"><code>blog/</code></h3>
+<p>这是博客内容源目录。所有准备公开发布的内容都应该放在这里。</p>
+<p>建议约定如下：</p>
+<ul>
+<li><code>blog/content/posts/</code>：博客文章</li>
+<li><code>blog/content/pages/</code>：单页内容，例如 About、Links、Now</li>
+<li><code>blog/assets/images/</code>：博客图片资源</li>
+</ul>
+<p>这个目录由 Obsidian 主要负责管理和编辑。</p>
+<h3 id="site"><code>site/</code></h3>
+<p>这是 Hugo 站点目录。它的作用是：</p>
+<ul>
+<li>保存 Hugo 配置</li>
+<li>保存主题、模板和发布配置</li>
+<li>作为 GitHub Pages 的发布入口</li>
+</ul>
+<p>你应该在 <code>site/</code> 目录中运行 Hugo 命令，例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>cd site
+</span></span><span style="display:flex;"><span>hugo server -D
+</span></span></code></pre></div><h2 id="为什么第一版使用软链接">为什么第一版使用软链接</h2>
+<p>第一版使用相对路径软链接，是因为它能在保留目录边界的前提下，避免手工复制文件。</p>
+<p>这意味着：</p>
+<ul>
+<li>你在 <code>blog/content/posts/</code> 中写文章</li>
+<li>Hugo 从 <code>site/content/posts</code> 读取文章</li>
+<li>但 <code>site/content/posts</code> 实际上是一个指向 <code>blog/content/posts/</code> 的软链接</li>
+</ul>
+<p>这样既不需要重复保存内容，也不需要先写同步脚本，足够适合第一版落地。</p>
+<h2 id="软链接创建方式">软链接创建方式</h2>
+<p>先确保 <code>site/</code> 已经初始化为一个 Hugo 站点，然后在 <code>notes/</code> 根目录执行：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mkdir -p site/content site/static
+</span></span><span style="display:flex;"><span>ln -s ../../blog/content/posts site/content/posts
+</span></span><span style="display:flex;"><span>ln -s ../../blog/content/pages site/content/pages
+</span></span><span style="display:flex;"><span>ln -s ../../blog/assets/images site/static/images
+</span></span></code></pre></div><p>创建完成后，<code>site/</code> 中会出现三处链接关系：</p>
+<ul>
+<li><code>site/content/posts</code> -&gt; <code>../../blog/content/posts</code></li>
+<li><code>site/content/pages</code> -&gt; <code>../../blog/content/pages</code></li>
+<li><code>site/static/images</code> -&gt; <code>../../blog/assets/images</code></li>
+</ul>
+<h2 id="为什么不把整个-blog-都直接链接进-site">为什么不把整个 <code>blog/</code> 都直接链接进 <code>site/</code></h2>
+<p>不建议把整个 <code>blog/</code> 一次性链接为 <code>site/content/</code>，原因是边界会变模糊。</p>
+<p>更细粒度的三个链接更容易维护，因为它明确了：</p>
+<ul>
+<li>哪些内容会进入 Hugo</li>
+<li>哪些内容属于文章</li>
+<li>哪些内容属于单页</li>
+<li>哪些内容属于静态资源</li>
+</ul>
+<p>这样以后即使要替换为同步脚本，也只需要替换这几个入口。</p>
+<h2 id="使用规则">使用规则</h2>
+<p>为了让这套结构长期稳定，建议固定以下规则：</p>
+<ul>
+<li>博客文章只写在 <code>blog/content/posts/</code></li>
+<li>About、Links、Now 等单页只写在 <code>blog/content/pages/</code></li>
+<li>博客图片只放在 <code>blog/assets/images/</code></li>
+<li><code>site/content/</code> 和 <code>site/static/</code> 不手工写文件</li>
+<li>Hugo 命令只在 <code>site/</code> 中执行</li>
+<li>GitHub Pages 只发布 <code>site/</code></li>
+</ul>
+<h2 id="推荐工作流">推荐工作流</h2>
+<p>日常工作建议按下面的顺序进行：</p>
+<ol>
+<li>在 Obsidian 中打开 <code>notes/</code></li>
+<li>在 <code>blog/content/posts/</code> 中新建或编辑文章</li>
+<li>如需插图，把图片放进 <code>blog/assets/images/</code></li>
+<li>进入 <code>site/</code> 运行 <code>hugo server -D</code></li>
+<li>本地预览确认无误后，提交并推送 <code>site/</code> 的发布配置以及 <code>blog/</code> 中的内容</li>
+<li>由 GitHub Actions 构建并发布到 GitHub Pages</li>
+</ol>
+<h2 id="这种设计的优点">这种设计的优点</h2>
+<ul>
+<li>博客内容和私人笔记分离，发布边界清楚</li>
+<li>Obsidian 仍然可以管理完整知识库</li>
+<li>Hugo 工程职责单一，更容易维护</li>
+<li>不需要第一天就引入同步脚本</li>
+<li>如果将来需要改成同步脚本，迁移成本很低</li>
+</ul>
+<h2 id="后续可演进方向">后续可演进方向</h2>
+<p>如果后续发现软链接在 CI 或跨环境使用中不够稳定，可以把当前结构平滑迁移为“<code>blog/</code> 作为内容源，脚本同步到 <code>site/</code>”的方案。</p>
+<p>那时不需要改变内容组织方式，只需要把链接替换成同步步骤即可。</p>
+</div>
+  </article>
+
+      </main>
+
+      <footer>
+        Built with Hugo. Content managed from Obsidian.
+      </footer>
+    </div>
+  </body>
+</html>

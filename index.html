@@ -139,6 +139,350 @@
         
       </article>
     
+      <article class="card">
+        <h2><a href="./posts/hugo-obsidian-directory-design/"></a></h2>
+        <div class="meta">0001-01-01</div>
+        
+          <p><h1 id="hugo--obsidian-目录设计说明">Hugo + Obsidian 目录设计说明</h1>
+<h2 id="目标">目标</h2>
+<p>这套目录设计的目标是把 Obsidian 的笔记管理能力和 Hugo 的静态站点生成能力解耦开来：</p>
+<ul>
+<li>Obsidian 负责管理整个笔记仓库</li>
+<li>Hugo 只负责把博客相关的 Markdown 转成静态网页</li>
+<li>GitHub Pages 只负责发布 Hugo 生成的网站</li>
+</ul>
+<p>这样做的好处是，博客内容和其他私人笔记、项目笔记、日记不会混在一起，同时 Hugo 站点的职责也保持单一。</p>
+<h2 id="设计原则">设计原则</h2>
+<p>目录设计遵循下面几条原则：</p>
+<ul>
+<li><code>notes/</code> 是 Obsidian Vault 根目录，也是日常使用的主目录</li>
+<li><code>blog/</code> 是公开博客内容源，只放准备发布的内容</li>
+<li><code>site/</code> 是 Hugo 工程目录，只负责构建和发布</li>
+<li>非博客内容默认不进入 Hugo 发布链路</li>
+<li>第一版用相对路径软链接连接 <code>blog/</code> 和 <code>site/</code></li>
+</ul>
+<h2 id="推荐目录结构">推荐目录结构</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>notes/
+</span></span><span style="display:flex;"><span>  .obsidian/
+</span></span><span style="display:flex;"><span>  inbox/
+</span></span><span style="display:flex;"><span>  daily/
+</span></span><span style="display:flex;"><span>  knowledge/
+</span></span><span style="display:flex;"><span>  project/
+</span></span><span style="display:flex;"><span>  blog/
+</span></span><span style="display:flex;"><span>    content/
+</span></span><span style="display:flex;"><span>      posts/
+</span></span><span style="display:flex;"><span>      pages/
+</span></span><span style="display:flex;"><span>    assets/
+</span></span><span style="display:flex;"><span>      images/
+</span></span><span style="display:flex;"><span>  site/
+</span></span><span style="display:flex;"><span>    content/
+</span></span><span style="display:flex;"><span>      posts -&gt; ../../blog/content/posts
+</span></span><span style="display:flex;"><span>      pages -&gt; ../../blog/content/pages
+</span></span><span style="display:flex;"><span>    static/
+</span></span><span style="display:flex;"><span>      images -&gt; ../../blog/assets/images
+</span></span><span style="display:flex;"><span>    .github/
+</span></span><span style="display:flex;"><span>      workflows/
+</span></span><span style="display:flex;"><span>        hugo.yml
+</span></span><span style="display:flex;"><span>    hugo.toml
+</span></span></code></pre></div><h2 id="各目录职责">各目录职责</h2>
+<h3 id="notes"><code>notes/</code></h3>
+<p>这是 Obsidian 的 Vault 根目录。你在 Obsidian 里应该直接打开这个目录，而不是只打开 <code>blog/</code> 或 <code>site/</code>。</p></p>
+        
+      </article>
+    
+      <article class="card">
+        <h2><a href="./posts/%E4%BF%AE%E5%BF%83/%E5%86%A5%E6%83%B3%E5%AD%A6%E4%B9%A0%E6%8C%87%E5%8D%97/01-%E5%88%9D%E7%BA%A7%E9%98%B6%E6%AE%B5%E5%AD%A6%E4%B9%A0%E8%AE%A1%E5%88%92/"></a></h2>
+        <div class="meta">0001-01-01</div>
+        
+          <p><h1 id="初级阶段学习计划">初级阶段学习计划</h1>
+<h2 id="1-阶段定位">1. 阶段定位</h2>
+<p>适用时长：<code>第 1-12 周</code></p>
+<p>适用对象：</p>
+<ul>
+<li>刚开始接触冥想</li>
+<li>很难稳定坐下</li>
+<li>经常走神、烦躁、困倦</li>
+<li>不清楚“怎么练才算对”</li>
+</ul>
+<p>这个阶段的核心，不是追求平静、空白、轻盈感，而是建立最基础的训练回路：</p>
+<p><code>注意偏离 -&gt; 觉察到偏离 -&gt; 轻轻回来</code></p>
+<h2 id="2-阶段目标">2. 阶段目标</h2>
+<ul>
+<li>建立稳定的练习习惯</li>
+<li>找到一个固定的注意锚点</li>
+<li>学会处理走神、困倦、烦躁</li>
+<li>初步建立身体觉察</li>
+<li>不再把“走神”当成失败</li>
+</ul>
+<h2 id="3-训练主线">3. 训练主线</h2>
+<p>本阶段主线：</p>
+<p><code>呼吸专注 -&gt; 简短身体扫描 -&gt; 少量开放觉察预备</code></p>
+<p>比例建议：</p>
+<ul>
+<li>呼吸专注：<code>70%</code></li>
+<li>身体扫描：<code>25%</code></li>
+<li>开放觉察预备：<code>5%</code></li>
+</ul>
+<h2 id="4-12-周周计划">4. 12 周周计划</h2>
+<h3 id="第-1-周">第 1 周</h3>
+<p>重点：先建立出现频率，不要求状态好。</p>
+<p>每日内容：</p>
+<ul>
+<li>呼吸专注 <code>5 分钟</code></li>
+<li>练习结束后静坐 <code>1 分钟</code></li>
+</ul>
+<p>要求：</p>
+<ul>
+<li>每周 <code>5-7</code> 天</li>
+<li>固定一个时间段</li>
+<li>固定一个练习位置</li>
+</ul>
+<h3 id="第-2-周">第 2 周</h3>
+<p>重点：让“坐下开始练”变得更自然。</p>
+<p>每日内容：</p>
+<ul>
+<li>呼吸专注 <code>5-8 分钟</code></li>
+<li>练习结束后静坐 <code>1 分钟</code></li>
+</ul>
+<p>要求：</p>
+<ul>
+<li>每周 <code>5-7</code> 天</li>
+<li>继续固定时间与地点</li>
+<li>呼吸位置只选一个，例如鼻尖、胸口或腹部</li>
+</ul>
+<h3 id="第-3-周">第 3 周</h3>
+<p>重点：从能坐下，进入能发现走神。</p></p>
+        
+      </article>
+    
+      <article class="card">
+        <h2><a href="./posts/%E4%BF%AE%E5%BF%83/%E5%86%A5%E6%83%B3%E5%AD%A6%E4%B9%A0%E6%8C%87%E5%8D%97/02-%E4%B8%AD%E7%BA%A7%E9%98%B6%E6%AE%B5%E5%AD%A6%E4%B9%A0%E8%AE%A1%E5%88%92/"></a></h2>
+        <div class="meta">0001-01-01</div>
+        
+          <p><h1 id="中级阶段学习计划">中级阶段学习计划</h1>
+<h2 id="1-阶段定位">1. 阶段定位</h2>
+<p>适用时长：<code>第 3 个月到第 12 个月</code></p>
+<p>这个阶段的核心，是从“守住一个点”，进入“看见经验如何流动”。</p>
+<p>训练重心开始从单纯专注，扩展到：</p>
+<ul>
+<li>开放觉察</li>
+<li>情绪识别</li>
+<li>非自动反应</li>
+<li>慈心与自我关怀</li>
+</ul>
+<h2 id="2-阶段目标">2. 阶段目标</h2>
+<ul>
+<li>维持较稳定的专注能力</li>
+<li>形成开放觉察能力</li>
+<li>看到念头、情绪、身体反应的关联</li>
+<li>开始减少自责、内耗、敌意反应</li>
+<li>逐步把冥想带入日常场景</li>
+</ul>
+<h2 id="3-训练主线">3. 训练主线</h2>
+<p>本阶段主线：</p>
+<p><code>呼吸专注 -&gt; 开放觉察 -&gt; 慈心 / 慈悲 -&gt; 日常整合预备</code></p>
+<p>比例建议：</p>
+<ul>
+<li>呼吸专注：<code>40%</code></li>
+<li>开放觉察：<code>35%</code></li>
+<li>慈心 / 慈悲：<code>15%</code></li>
+<li>日常整合练习：<code>10%</code></li>
+</ul>
+<h2 id="4-按月计划">4. 按月计划</h2>
+<h3 id="第-1-个月">第 1 个月</h3>
+<p>重点：重新稳住专注基础，为开放觉察做准备。</p>
+<p>每周建议：</p>
+<ul>
+<li>呼吸专注 <code>3</code> 次，每次 <code>20 分钟</code></li>
+<li>开放觉察 <code>1-2</code> 次，每次 <code>10-15 分钟</code></li>
+<li>身体扫描 <code>1</code> 次，每次 <code>15 分钟</code></li>
+</ul>
+<p>观察重点：</p>
+<ul>
+<li>走神后回收速度</li>
+<li>昏沉和清醒是否能分清</li>
+</ul>
+<h3 id="第-2-个月">第 2 个月</h3>
+<p>重点：增加开放觉察比重。</p>
+<p>每周建议：</p></p>
+        
+      </article>
+    
+      <article class="card">
+        <h2><a href="./posts/%E4%BF%AE%E5%BF%83/%E5%86%A5%E6%83%B3%E5%AD%A6%E4%B9%A0%E6%8C%87%E5%8D%97/03-%E9%AB%98%E7%BA%A7%E9%98%B6%E6%AE%B5%E5%AD%A6%E4%B9%A0%E8%AE%A1%E5%88%92/"></a></h2>
+        <div class="meta">0001-01-01</div>
+        
+          <p><h1 id="高级阶段学习计划">高级阶段学习计划</h1>
+<h2 id="1-阶段定位">1. 阶段定位</h2>
+<p>适用时长：<code>1 年以上</code></p>
+<p>高级阶段不等于神秘体验更多，也不等于练得更久。它更看重三件事：</p>
+<ul>
+<li>稳定性</li>
+<li>可迁移性</li>
+<li>一致性</li>
+</ul>
+<p>真正的重点是：觉察是否已经进入生活。</p>
+<h2 id="2-阶段目标">2. 阶段目标</h2>
+<ul>
+<li>长期维持正式练习</li>
+<li>深化开放觉察与慈悲训练</li>
+<li>在压力、冲突、疲劳、决策中保持觉察</li>
+<li>让生活本身成为主要训练场</li>
+<li>逐渐形成更稳定的平衡心</li>
+</ul>
+<h2 id="3-训练主线">3. 训练主线</h2>
+<p>本阶段主线：</p>
+<p><code>专注稳定维护 -&gt; 开放觉察深化 -&gt; 慈悲与平等心 -&gt; 高密度日常整合</code></p>
+<p>比例建议：</p>
+<ul>
+<li>呼吸专注：<code>25%</code></li>
+<li>开放觉察：<code>30%</code></li>
+<li>慈心 / 慈悲 / 平等心：<code>20%</code></li>
+<li>日常整合：<code>25%</code></li>
+</ul>
+<h2 id="4-长期维护框架">4. 长期维护框架</h2>
+<h3 id="模块一正式练习维护">模块一：正式练习维护</h3>
+<p>每周建议：</p>
+<ul>
+<li>呼吸专注 <code>2</code> 次，每次 <code>20-30 分钟</code></li>
+<li>开放觉察 <code>2-3</code> 次，每次 <code>20-30 分钟</code></li>
+<li>慈心 / 慈悲 / 平等心 <code>1-2</code> 次，每次 <code>15-25 分钟</code></li>
+</ul>
+<p>维护原则：</p>
+<ul>
+<li>不追求不断加时长</li>
+<li>保持结构稳定比偶尔长练更重要</li>
+</ul>
+<h3 id="模块二日常高频整合">模块二：日常高频整合</h3>
+<p>每天建议：</p>
+<ul>
+<li>工作开始前 <code>1</code> 次停顿</li>
+<li>工作切换时 <code>2-3</code> 次呼吸觉察</li>
+<li>吃饭时 <code>1</code> 次身体与味觉觉察</li>
+<li>走路时 <code>1</code> 次脚步觉察</li>
+<li>冲突或压力来时主动暂停若干次</li>
+</ul>
+<p>每次只需 <code>10 秒到 3 分钟</code></p></p>
+        
+      </article>
+    
+      <article class="card">
+        <h2><a href="./posts/%E4%BF%AE%E5%BF%83/%E5%86%A5%E6%83%B3%E5%AD%A6%E4%B9%A0%E6%8C%87%E5%8D%97/%E5%86%A5%E6%83%B3%E5%AD%A6%E4%B9%A0%E6%8C%87%E5%8D%97_%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%BF%9B%E9%98%B6%E4%B8%8E%E6%88%90%E7%86%9F/"></a></h2>
+        <div class="meta">0001-01-01</div>
+        
+          <p><h1 id="冥想学习指南从入门到进阶与成熟">冥想学习指南：从入门到进阶与成熟</h1>
+<hr>
+<h2 id="一引言">一、引言</h2>
+<h3 id="11-为什么要学习冥想">1.1 为什么要学习冥想</h3>
+<p>冥想并不是某种神秘修行，而是一类可以被系统学习和反复训练的心智练习。美国国家补充与整合健康中心（NCCIH）在官方综述中指出，冥想与正念相关练习对压力、焦虑和抑郁症状可能有帮助，但效果会受到练习方式、课程质量、个体差异和使用场景影响。[1]</p>
+<p>从神经科学视角看，部分研究发现，长期冥想练习与大脑功能和连接模式的变化有关，例如默认模式网络（DMN）活动差异、情绪加工相关脑区反应变化，以及注意监测和自我调节相关机制的改变。[2][3][4][5] 这些发现并不意味着冥想可以被神化成万能方法，但足以说明：它不是空泛口号，而是一种有实证基础的训练路径。</p>
+<p>更重要的是，冥想并不只发生在打坐时。它真正的价值，通常体现在生活中是否更容易察觉自动反应，是否能在压力、冲突、疲劳和情绪波动中保留一点观察和选择的空间。[5][6]</p>
+<h3 id="12-冥想常见误解">1.2 冥想常见误解</h3>
+<p>在开始之前，有必要先澄清几个常见误解。</p>
+<p><strong>误解一：&ldquo;冥想就是把脑子练空。&rdquo;</strong><br>
+不是。冥想的核心不是压制念头，而是提升对念头、身体感觉和情绪活动的觉察能力。注意力跑掉后，能够看见它并回来，这个过程本身就是训练内容。[2]</p>
+<p><strong>误解二：&ldquo;冥想必须盘腿坐很久。&rdquo;</strong><br>
+不是。标准化正念课程 <code>MBSR</code> 包含坐姿练习、身体扫描、行走练习和温和伸展，不要求固定采用某一种姿势。姿势服务于练习，不是练习本身。[7]</p>
+<p><strong>误解三：&ldquo;冥想是万能疗法。&rdquo;</strong><br>
+不是。NCCIH 明确提醒，冥想不能替代必要的医疗或心理治疗；同时，也不是所有人都只会获得正面体验，部分练习者可能出现焦虑加重、痛苦记忆浮现或其他不适。[1][8][9]</p>
+<p><strong>误解四：&ldquo;我老是走神，说明我不适合冥想。&rdquo;</strong><br>
+不是。走神不是失败。研究与实修框架都强调，发现走神并把注意力带回来，本身就是入门阶段的核心训练。[2][10]</p>
+<h3 id="13-本文的结构与阅读方式">1.3 本文的结构与阅读方式</h3>
+<p>本文先说明冥想的定义、类型和核心能力，再讨论其作用、机制与边界，然后给出三套常见阶段框架，最后进入实操方法、常见困难与资料建议。</p>
+<p>如果你是初学者，建议按顺序阅读。先建立概念，再进入方法，会更容易避免把冥想误解成“追求特殊体验”的活动。</p>
+<hr>
+<h2 id="二概念基础">二、概念基础</h2>
+<h3 id="21-冥想的定义">2.1 冥想的定义</h3>
+<h4 id="现代心理学与认知科学视角">现代心理学与认知科学视角</h4>
+<p>在现代研究语境中，冥想通常被理解为一组通过训练注意力、觉察和心理调节过程来影响体验与行为的练习。Lutz、Slagter、Dunne 和 Davidson 在经典综述中指出，冥想的核心机制之一是对注意的调节与监测，即学习如何维持注意、发现偏离，并在不自动卷入的情况下重新定向。[2]</p>
+<p>美国心理学会（APA）的科普页面则把正念冥想概括为一种帮助人们以更当下、更少评判的方式接触经验的练习路径。[11]</p>
+<h4 id="东方传统修习语境">东方传统修习语境</h4>
+<p>在东方传统中，冥想通常被理解为对“心如何运作”的训练。其重点不只是放松，而是通过长期练习培养稳定的注意力、清晰的觉察力以及较少被情绪和执着牵引的能力。传统中的“止”偏向专注与安定，“观”偏向洞察与如实觉察。</p>
+<p>无著菩萨在《大乘阿毗达磨集论》中提出的“九住心”，是东方传统中较具代表性的注意力渐进训练框架之一。现代一些实修体系，尤其是十阶段模型，会把它作为古典依据之一。[10]</p>
+<h4 id="冥想与正念mindfulness的关系与区别">冥想与正念（Mindfulness）的关系与区别</h4>
+<p>“冥想”是更大的上位概念，包含多种练习方式；“正念”既可以指一种心理品质，也可以指一类具体练习。卡巴金将正念定义为：有意识地、在当下、并以不评判的方式关注经验。[12]</p>
+<p>因此，更准确的说法是：正念是冥想中的重要分支，但并不等于全部冥想。专注训练、开放觉察训练、慈心与慈悲训练都可能与正念有关，但它们的直接训练目标并不完全相同。[2][6]</p>
+<h3 id="22-冥想的主要类型">2.2 冥想的主要类型</h3>
+<p>依据当前研究中最常见的分类，冥想通常可分为三大主要类型：[2][6]</p>
+<h4 id="专注注意focused-attention-fa">专注注意（Focused Attention, FA）</h4>
+<p>把注意力放在单一对象上，例如呼吸、腹部起伏、鼻尖触感或脚步。当注意力偏离时，察觉，再回来。它主要训练注意维持、冲突监测和分心后的回收能力，是最典型的入门路径。[2]</p>
+<h4 id="开放监测open-monitoring-om">开放监测（Open Monitoring, OM）</h4>
+<p>不再把注意力死守在一个点上，而是对呼吸、念头、声音、情绪和身体感觉保持开放、非反应式的觉察。它要求练习者既清醒又不过度抓取，因此通常建立在一定专注力基础上。[6]</p>
+<h4 id="慈心--慈悲冥想loving-kindness--compassion">慈心 / 慈悲冥想（Loving-kindness / Compassion）</h4>
+<p>通过有意识地培养对自己和他人的善意、温和、关怀与不敌对反应，来改变情绪和关系模式。它在现代研究里常与 FA、OM 并列为三大主要冥想类型之一。[6]</p>
+<h4 id="正念减压mbsr体系">正念减压（MBSR）体系</h4>
+<p><code>MBSR</code> 由 Jon Kabat-Zinn 于 1979 年在马萨诸塞大学医学院创立，是当前研究和应用最广的标准化冥想课程之一。典型结构为 8 周，课程中通常包含坐姿冥想、身体扫描、正念行走和温和伸展。它不是单一技巧，而是把多种练习整合进一个可复制的训练框架。[7][12]</p></p>
+        
+      </article>
+    
+      <article class="card">
+        <h2><a href="./posts/%E4%BF%AE%E5%BF%83/%E9%94%BB%E7%82%BC%E6%8C%87%E5%8D%97/%E6%AF%8F%E6%97%A5%E4%B8%80%E5%B0%8F%E6%97%B6%E7%BB%BC%E5%90%88%E9%94%BB%E7%82%BC/"></a></h2>
+        <div class="meta">0001-01-01</div>
+        
+          <p><h1 id="固本强基-舞动抗衰-每日一小时综合锻炼方案">&ldquo;固本强基 舞动抗衰&rdquo; 每日一小时综合锻炼方案</h1>
+<hr>
+<h2 id="一场景与人群说明">一、场景与人群说明</h2>
+<ul>
+<li><strong>适用人群</strong>：35 岁左右，希望通过每天 1 小时高效锻炼，达到强健腰椎、保护脆弱膝关节、舒展筋骨并有效抗初老的人群。</li>
+<li><strong>当前身体状态</strong>：腰椎需强化维稳；<strong>膝关节极度脆弱（伴随弹响/酸痛，绝对禁忌深蹲、跳跃）</strong>。</li>
+<li><strong>锻炼环境</strong>：居家或办公室，需瑜伽垫、强节奏音乐。</li>
+<li><strong>总时长</strong>：60 分钟。</li>
+</ul>
+<h3 id="装备清单">装备清单</h3>
+<table>
+  <thead>
+      <tr>
+          <th>装备</th>
+          <th>用途</th>
+          <th>优先级</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>瑜伽垫</td>
+          <td>垫上训练与拉伸</td>
+          <td>必备</td>
+      </tr>
+      <tr>
+          <td>底部有缓冲的室内训练鞋</td>
+          <td>舞蹈流环节保护踝/膝</td>
+          <td><strong>强烈建议</strong></td>
+      </tr>
+      <tr>
+          <td>弹力带圈（轻/中阻力）</td>
+          <td>进阶阶段核心与臀肌强化</td>
+          <td>进阶后必备</td>
+      </tr>
+      <tr>
+          <td>泡沫轴（Foam Roller）</td>
+          <td>每周 2-3 次自我筋膜放松</td>
+          <td>建议配备</td>
+      </tr>
+      <tr>
+          <td>500ml 矿泉水瓶 x 2 或 0.5kg 哑铃 x 2</td>
+          <td>进阶舞蹈流负重</td>
+          <td>可选</td>
+      </tr>
+  </tbody>
+</table>
+<hr>
+<h2 id="二核心设计原则">二、核心设计原则</h2>
+<ol>
+<li><strong>高心率与零冲击并存</strong>：通过上肢大幅度律动和核心高频发力拉高心率，实现&quot;燃脂出汗但不废膝&quot;。</li>
+<li><strong>核心枢纽发力</strong>：动作的动力源来自腰腹核心（天然护腰），拒绝四肢无序乱甩。</li>
+<li><strong>三面体核心覆盖</strong>：矢状面（前后）+ 额状面（侧向）+ <strong>水平面（抗旋转）</strong>，为腰椎打造全方位&quot;铠甲&quot;。</li>
+<li><strong>渐进式抗衰闭环</strong>：舒缓内功 - 核心铠甲 - 燃脂心肺 - 筋骨释放 - 神经修复。</li>
+<li><strong>三级进阶体系</strong>：初级（第 1-3 周）- 进阶（第 4-8 周）- 精通（第 9 周起）。</li>
+</ol>
+<hr>
+<h2 id="三方案设计与阶梯计划">三、方案设计与阶梯计划</h2>
+<hr>
+<h3 id="模块一气血唤醒与关节润滑10-分钟">模块一：气血唤醒与关节润滑（10 分钟）</h3>
+<h4 id="step-1关节专项润滑2-分钟">Step 1：关节专项润滑（2 分钟）</h4>
+<p>在开始八段锦之前，先为脆弱关节&quot;上油&quot;：</p></p>
+        
+      </article>
+    
   </section>
 
       </main>
