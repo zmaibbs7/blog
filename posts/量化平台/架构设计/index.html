@@ -1,0 +1,1283 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title> | My Blog</title>
+    <meta name="description" content="A Hugo blog managed from an Obsidian vault.">
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f1e8;
+        --paper: #fffdf8;
+        --ink: #1f1f1c;
+        --muted: #5f5b53;
+        --line: #d9d1c3;
+        --accent: #8a4b2a;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        background:
+          radial-gradient(circle at top, #efe5d3 0%, #f5f1e8 40%, #f5f1e8 100%);
+        color: var(--ink);
+      }
+
+      .wrap {
+        width: min(920px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      header {
+        padding: 40px 0 24px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      header a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .brand {
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      .tagline {
+        margin-top: 8px;
+        color: var(--muted);
+      }
+
+      main {
+        padding: 28px 0 64px;
+      }
+
+      .card {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(53, 42, 23, 0.05);
+      }
+
+      .list {
+        display: grid;
+        gap: 16px;
+      }
+
+      article h2,
+      article h1 {
+        margin-top: 0;
+      }
+
+      article a {
+        color: var(--accent);
+      }
+
+      .meta {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      footer {
+        padding: 24px 0 48px;
+        color: var(--muted);
+        border-top: 1px solid var(--line);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <a href="../../../">
+          <div class="brand">My Blog</div>
+        </a>
+        <div class="tagline">A Hugo blog managed from an Obsidian vault.</div>
+      </header>
+
+      <main>
+        
+  <article class="card">
+    <h1></h1>
+    <div class="meta">0001-01-01</div>
+    <div><h1 id="量化交易平台--软件架构设计文档-v30最终版">量化交易平台 — 软件架构设计文档 v3.0（最终版）</h1>
+<blockquote>
+<p>基于 v2.0 + 外部深度评审修订
+核心新增：时间模型、资金会计、订单状态机、调度监控
+每个模块标注实施阶段（P1/P2/P3），避免过度工程化</p>
+</blockquote>
+<hr>
+<h2 id="设计纲领">设计纲领</h2>
+<blockquote>
+<p>[!IMPORTANT]
+<strong>本文档的核心原则</strong>：每个模块都标注了实施阶段。</p>
+<ul>
+<li><strong>P1</strong>（Phase 1）：必须首先实现，系统才能运行</li>
+<li><strong>P2</strong>（Phase 2）：系统稳定运行后，解决可靠性和一致性</li>
+<li><strong>P3</strong>（Phase 3）：规模化、智能化扩展</li>
+</ul>
+<p><strong>Phase 1 的唯一目标</strong>：单机、单策略、单 Broker、稳定回测 + 稳定实盘</p>
+</blockquote>
+<hr>
+<h2 id="第一部分系统全景">第一部分：系统全景</h2>
+<h3 id="11-分层总览">1.1 分层总览</h3>
+<pre tabindex="0"><code>╔═══════════════════════════════════════════════════════════════════════════════╗
+║                         用户入口层 (Entry)                                     ║
+║            CLI / Python API / Notebook / Web Dashboard / AI Agent             ║
+╚════╤══════════╤═══════════╤══════════╤════════════╤══════════════════════════╝
+     │          │           │          │            │
+┌────▼────┐ ┌──▼─────┐ ┌───▼───┐ ┌────▼─────┐ ┌───▼──────┐
+│strategy │ │backtest│ │ live  │ │ report   │ │ research │
+│ P1      │ │ P1     │ │ P1    │ │ P1       │ │ P3       │
+└────┬────┘ └──┬─────┘ └───┬───┘ └────┬─────┘ └──────────┘
+     │         │            │          │
+╔════▼═════════▼════════════▼══════════▼════════════════════════════════════════╗
+║                          平台核心层 (Platform Core)                             ║
+║                                                                                ║
+║  ┌─────────┐ ┌──────────┐ ┌──────────┐ ┌──────┐ ┌─────────┐ ┌────────────┐  ║
+║  │  types  │ │   time   │ │accounting│ │ risk │ │  events  │ │   config   │  ║
+║  │  P1     │ │   P1     │ │   P1     │ │  P1  │ │   P1     │ │    P1      │  ║
+║  └─────────┘ └──────────┘ └──────────┘ └──────┘ └─────────┘ └────────────┘  ║
+║  ┌─────────┐ ┌──────────┐ ┌──────────┐ ┌──────┐                              ║
+║  │   oms   │ │persistence│ │ logging │ │sched │                              ║
+║  │   P1    │ │   P2      │ │   P1    │ │  P2  │                              ║
+║  └─────────┘ └──────────┘ └──────────┘ └──────┘                              ║
+║  ┌──────────┐                                                                 ║
+║  │ monitor  │                                                                 ║
+║  │   P2     │                                                                 ║
+║  └──────────┘                                                                 ║
+╚═════════════════════════════════════╤═════════════════════════════════════════╝
+                                      │
+                             ┌────────▼────────┐
+                             │      data       │
+                             │       P1        │
+                             └─────────────────┘
+</code></pre><h3 id="12-模块全景表">1.2 模块全景表</h3>
+<table>
+	<thead>
+			<tr>
+					<th>#</th>
+					<th>模块</th>
+					<th>标识</th>
+					<th>阶段</th>
+					<th>职责</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>1</td>
+					<td><strong>类型定义</strong></td>
+					<td><code>types</code></td>
+					<td>P1</td>
+					<td>全平台通用数据结构：Bar, Order, Trade, Position</td>
+			</tr>
+			<tr>
+					<td>2</td>
+					<td><strong>时间系统</strong></td>
+					<td><code>time</code></td>
+					<td>P1</td>
+					<td>统一时钟、交易日历、时区对齐</td>
+			</tr>
+			<tr>
+					<td>3</td>
+					<td><strong>资金会计</strong></td>
+					<td><code>accounting</code></td>
+					<td>P1</td>
+					<td>资金/持仓/盈亏精确计算，独立于交易逻辑</td>
+			</tr>
+			<tr>
+					<td>4</td>
+					<td><strong>订单管理</strong></td>
+					<td><code>oms</code></td>
+					<td>P1</td>
+					<td>订单状态机、生命周期、幂等性</td>
+			</tr>
+			<tr>
+					<td>5</td>
+					<td><strong>风控</strong></td>
+					<td><code>risk</code></td>
+					<td>P1</td>
+					<td>统一风控规则链</td>
+			</tr>
+			<tr>
+					<td>6</td>
+					<td><strong>事件系统</strong></td>
+					<td><code>events</code></td>
+					<td>P1</td>
+					<td>发布/订阅，顺序保证，模块解耦</td>
+			</tr>
+			<tr>
+					<td>7</td>
+					<td><strong>配置管理</strong></td>
+					<td><code>config</code></td>
+					<td>P1</td>
+					<td>YAML 配置 + DI 容器</td>
+			</tr>
+			<tr>
+					<td>8</td>
+					<td><strong>日志审计</strong></td>
+					<td><code>logging</code></td>
+					<td>P1</td>
+					<td>交易/订单/策略决策审计</td>
+			</tr>
+			<tr>
+					<td>9</td>
+					<td><strong>数据模块</strong></td>
+					<td><code>data</code></td>
+					<td>P1</td>
+					<td>历史数据获取、实时行情、本地存储</td>
+			</tr>
+			<tr>
+					<td>10</td>
+					<td><strong>策略模块</strong></td>
+					<td><code>strategy</code></td>
+					<td>P1</td>
+					<td>Event/Vector/AI 三类策略基类</td>
+			</tr>
+			<tr>
+					<td>11</td>
+					<td><strong>回测模块</strong></td>
+					<td><code>backtest</code></td>
+					<td>P1</td>
+					<td>事件驱动/向量化引擎</td>
+			</tr>
+			<tr>
+					<td>12</td>
+					<td><strong>实盘模块</strong></td>
+					<td><code>live</code></td>
+					<td>P1</td>
+					<td>统一引擎 + AssetHandler + 多 Broker</td>
+			</tr>
+			<tr>
+					<td>13</td>
+					<td><strong>报告模块</strong></td>
+					<td><code>report</code></td>
+					<td>P1</td>
+					<td>指标、可视化、报告导出</td>
+			</tr>
+			<tr>
+					<td>14</td>
+					<td><strong>状态持久化</strong></td>
+					<td><code>persistence</code></td>
+					<td>P2</td>
+					<td>崩溃恢复、状态快照</td>
+			</tr>
+			<tr>
+					<td>15</td>
+					<td><strong>调度系统</strong></td>
+					<td><code>scheduler</code></td>
+					<td>P2</td>
+					<td>盘前/盘后/定时任务</td>
+			</tr>
+			<tr>
+					<td>16</td>
+					<td><strong>监控系统</strong></td>
+					<td><code>monitor</code></td>
+					<td>P2</td>
+					<td>健康检查、延迟、心跳</td>
+			</tr>
+			<tr>
+					<td>17</td>
+					<td><strong>多策略协调</strong></td>
+					<td><code>coordinator</code></td>
+					<td>P3</td>
+					<td>资金分配、策略组合</td>
+			</tr>
+			<tr>
+					<td>18</td>
+					<td><strong>研究环境</strong></td>
+					<td><code>research</code></td>
+					<td>P3</td>
+					<td>Notebook、因子分析、离线训练</td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h2 id="第二部分核心子系统设计">第二部分：核心子系统设计</h2>
+<blockquote>
+<p>以下是 v3.0 新增或重大修订的子系统，它们解决 v2.0 最薄弱的&quot;系统架构&quot;层面</p>
+</blockquote>
+<hr>
+<h3 id="21--时间系统-time--p1">2.1 ⭐ 时间系统 <code>time/</code> — P1</h3>
+<blockquote>
+<p>v2.0 最大缺失。量化平台是&quot;时间驱动系统&quot;，没有统一时钟一切都是不稳定的。</p>
+</blockquote>
+<pre tabindex="0"><code>time/
+├── core/
+│   ├── clock.py                 # IClock 接口
+│   ├── calendar.py              # IExchangeCalendar 接口
+│   └── types.py                 # Timestamp, TimeRange, TradingSession
+│
+├── clocks/
+│   ├── simulated_clock.py       # 回测用：模拟时间，可加速/暂停
+│   ├── realtime_clock.py        # 实盘用：真实墙钟
+│   └── replay_clock.py          # 回放用：按历史时间戳推进
+│
+├── calendars/
+│   ├── china_stock.py           # A股：09:30-11:30, 13:00-15:00
+│   ├── china_futures.py         # 期货：含夜盘
+│   ├── us_stock.py              # 美股
+│   └── crypto.py                # 加密货币：7×24
+│
+└── utils.py                     # 时区转换、时间对齐
+</code></pre><p><strong>时间模型的五种时间</strong>：</p>
+<pre tabindex="0"><code>┌─────────────────────────────────────────────────────────┐
+│                   时间模型                                │
+│                                                          │
+│  Exchange Time ─── 交易所时间（北京/纽约/UTC）             │
+│       ↓                                                  │
+│  Event Time ────── 事件发生时间（行情时间戳）               │
+│       ↓                                                  │
+│  Processing Time ─ 策略处理时间（有延迟）                  │
+│       ↓                                                  │
+│  Execution Time ── 订单执行时间                           │
+│                                                          │
+│  回测中：以上全部由 SimulatedClock 统一模拟                │
+│  实盘中：Exchange Time 来自交易所，其余来自 RealtimeClock  │
+└─────────────────────────────────────────────────────────┘
+</code></pre><p><strong>接口定义</strong>：</p>
+<pre tabindex="0"><code>IClock
+├── now() → Timestamp                     # 当前时间
+├── is_trading_time() → bool              # 是否在交易时段
+├── sleep(duration)                       # 等待（回测=快进，实盘=真等）
+└── schedule(time, callback)              # 定时触发
+
+IExchangeCalendar
+├── is_trading_day(date) → bool
+├── get_trading_sessions(date) → list[TradingSession]
+├── next_trading_day(date) → date
+├── prev_trading_day(date) → date
+└── get_trading_minutes(date) → list[Timestamp]
+
+TradingSession
+├── exchange: Exchange
+├── open_time: time
+├── close_time: time
+├── pre_market: time | None               # 盘前（美股有）
+├── post_market: time | None              # 盘后
+└── timezone: str
+</code></pre><p><strong>为什么这是 P1</strong>：</p>
+<pre tabindex="0"><code>没有时间模型 →
+  回测看到未来数据（未来函数）
+  多市场时间错位
+  实盘 vs 回测时间不一致
+  → 所有回测结果不可信
+</code></pre><hr>
+<h3 id="22--资金会计-accounting--p1">2.2 ⭐ 资金会计 <code>accounting/</code> — P1</h3>
+<blockquote>
+<p>v2.0 的 Portfolio 太单薄。资金管理是量化系统&quot;最容易出错且最难调试&quot;的部分。</p>
+</blockquote>
+<pre tabindex="0"><code>accounting/
+├── core/
+│   ├── account.py               # IAccount 接口
+│   ├── position_book.py         # IPositionBook 接口
+│   ├── ledger.py                # ILedger 接口（记账本）
+│   └── types.py                 # CapitalSnapshot, PnLBreakdown
+│
+├── account.py                   # Account 实现
+│                                #   总资产 = 可用资金 + 冻结资金 + 持仓市值
+│
+├── position_book.py             # PositionBook 实现
+│                                #   按品种管理持仓，支持 FIFO/平均成本
+│
+├── ledger.py                    # Ledger 实现
+│                                #   每笔资金变动的不可变记录
+│
+└── settlement.py                # 结算处理
+                                 #   逐日盯市（期货）/ T+1 交收（股票）
+</code></pre><p><strong>Account 的资金模型</strong>：</p>
+<pre tabindex="0"><code>Account 资金结构
+─────────────────────────────────
+  总权益 (equity)
+    = 可用资金 (available)
+    + 冻结资金 (frozen)         ← 未成交订单冻结的资金
+    + 持仓市值 (market_value)   ← 所有 Position 的当前市值
+
+  冻结资金 (frozen)
+    = 待成交买单金额 + 预扣手续费
+
+  已实现盈亏 (realized_pnl)
+    = Σ 每笔平仓的盈亏
+
+  未实现盈亏 (unrealized_pnl)
+    = Σ 每个持仓的 (当前价 - 持仓均价) × 数量
+</code></pre><p><strong>为什么从 Portfolio 独立出来</strong>：</p>
+<pre tabindex="0"><code>Portfolio（v2.0）= 交易概念，偏用户视角
+Accounting（v3.0）= 精确簿记，偏系统视角
+
+区别：
+  Portfolio: &#34;我持有100股平安银行&#34;
+  Accounting: &#34;100股平安银行，成本12.35，冻结资金1235，
+              手续费预扣6.18，保证金占用0（股票），
+              逐笔记录在 Ledger&#34;
+</code></pre><hr>
+<h3 id="23--订单管理系统-oms--p1">2.3 ⭐ 订单管理系统 <code>oms/</code> — P1</h3>
+<blockquote>
+<p>v2.0 的 IBroker.submit_order() 过于理想化。真实订单有复杂的生命周期。</p>
+</blockquote>
+<pre tabindex="0"><code>oms/
+├── core/
+│   ├── order_manager.py         # IOrderManager 接口
+│   ├── state_machine.py         # OrderStateMachine 定义
+│   └── types.py                 # ExecutionReport
+│
+├── state_machine.py             # 订单状态机实现
+├── order_manager.py             # OrderManager 实现
+├── order_book.py                # 活跃订单簿
+└── idempotency.py               # 幂等性保证（防重复下单）
+</code></pre><p><strong>订单状态机</strong>：</p>
+<pre tabindex="0"><code>                    ┌──────────┐
+                    │   NEW    │ ← 策略创建
+                    └────┬─────┘
+                         │ submit
+                    ┌────▼─────┐
+              ┌─────│ PENDING  │─────┐
+              │     └────┬─────┘     │
+              │          │           │
+         cancel     partial fill   reject
+              │          │           │
+        ┌─────▼────┐ ┌───▼──────┐ ┌─▼────────┐
+        │ CANCEL   │ │ PARTIAL  │ │ REJECTED │
+        │ PENDING  │ │ FILLED   │ └──────────┘
+        └─────┬────┘ └───┬──────┘
+              │           │
+         confirmed    fill remaining
+              │           │
+        ┌─────▼────┐ ┌───▼──────┐
+        │CANCELLED │ │  FILLED  │
+        └──────────┘ └──────────┘
+
+        ┌──────────┐
+        │ EXPIRED  │ ← 超时自动取消
+        └──────────┘
+
+合法状态转换：
+  NEW → PENDING                     提交到 Broker
+  PENDING → PARTIAL_FILLED          部分成交
+  PENDING → FILLED                  全部成交
+  PENDING → REJECTED                被拒绝（资金不足/风控/交易所）
+  PENDING → CANCEL_PENDING          请求撤单
+  PARTIAL_FILLED → FILLED           剩余全部成交
+  PARTIAL_FILLED → CANCEL_PENDING   撤销剩余
+  CANCEL_PENDING → CANCELLED        撤单确认
+  PENDING → EXPIRED                 超时
+
+非法转换（系统必须拒绝）：
+  FILLED → 任何状态               ❌
+  CANCELLED → 任何状态            ❌
+  REJECTED → 任何状态             ❌
+</code></pre><p><strong>ExecutionReport</strong>：</p>
+<pre tabindex="0"><code>ExecutionReport                       # 每次状态变更产生一条
+├── order_id: str
+├── exec_type: ExecType              # NEW / PARTIAL / FILL / CANCEL / REJECT
+├── order_status: OrderStatus        # 变更后的状态
+├── filled_qty: float                # 本次成交数量
+├── filled_price: float              # 本次成交价格
+├── cumulative_qty: float            # 累计成交数量
+├── remaining_qty: float             # 剩余未成交
+├── commission: float                # 本次手续费
+├── text: str                        # 附加信息（拒绝原因等）
+└── timestamp: Timestamp
+</code></pre><hr>
+<h3 id="24-事件系统-events--p1v30-细化">2.4 事件系统 <code>events/</code> — P1（v3.0 细化）</h3>
+<pre tabindex="0"><code>events/
+├── core/
+│   ├── bus.py                   # IEventBus 接口
+│   └── types.py                 # 所有事件类型定义
+│
+├── sync_bus.py                  # 同步事件总线（P1，回测用）
+└── async_bus.py                 # 异步事件总线（P2，实盘用）
+</code></pre><p><strong>事件总线契约（v3.0 新增）</strong>：</p>
+<pre tabindex="0"><code>IEventBus 契约
+─────────────────────────────────────────────
+  顺序保证：
+    同一 publisher 发出的事件，subscriber 按发出顺序接收
+    不同 publisher 的事件，不保证跨 publisher 顺序
+
+  投递保证：
+    P1：At-most-once（丢失可接受，简单优先）
+    P2：At-least-once（重复可接受，通过幂等性去重）
+
+  同步 vs 异步：
+    SyncEventBus：   publish() 阻塞直到所有 subscriber 处理完
+                     适合回测（确定性、可重复）
+    AsyncEventBus：  publish() 立即返回，subscriber 异步处理
+                     适合实盘（低延迟）
+
+  背压策略（P2）：
+    当 subscriber 处理速度 &lt; publisher 发送速度：
+    - 回测：不可能发生（同步）
+    - 实盘：丢弃旧事件 / 合并同类事件 / 报警
+</code></pre><hr>
+<h3 id="25-调度系统-scheduler--p2">2.5 调度系统 <code>scheduler/</code> — P2</h3>
+<pre tabindex="0"><code>scheduler/
+├── core/
+│   └── scheduler.py             # IScheduler 接口
+│
+├── simple_scheduler.py          # 基于 threading.Timer（P2）
+└── cron_scheduler.py            # Cron 表达式（P3）
+</code></pre><pre tabindex="0"><code>IScheduler
+├── schedule_daily(time, task)        # 每日定时
+├── schedule_pre_market(task)         # 盘前（依赖 ExchangeCalendar）
+├── schedule_post_market(task)        # 盘后
+├── schedule_interval(seconds, task)  # 周期执行
+└── cancel(task_id)
+
+典型任务：
+  盘前：数据更新、模型推理、信号预计算
+  盘后：结算、报告生成、持仓同步
+  定时：风控检查、心跳、日志轮转
+</code></pre><hr>
+<h3 id="26-监控系统-monitor--p2">2.6 监控系统 <code>monitor/</code> — P2</h3>
+<pre tabindex="0"><code>monitor/
+├── core/
+│   └── monitor.py               # IMonitor 接口
+│
+├── health_check.py              # 系统健康检查
+├── metrics_collector.py         # 延迟/吞吐/内存指标
+├── alerter.py                   # 告警（日志/钉钉/邮件）
+└── dashboard.py                 # 简易 Web 面板（P3）
+</code></pre><pre tabindex="0"><code>IMonitor
+├── record_latency(name, ms)         # 记录延迟
+├── record_counter(name, value)      # 计数器
+├── health_check() → HealthStatus    # 各组件状态
+└── alert(level, message)            # 告警
+
+监控指标（P2 实现）：
+  - 行情延迟（从交易所到策略的耗时）
+  - 策略计算耗时
+  - 下单到成交延迟
+  - 内存使用
+  - Broker 连接状态
+  - 策略心跳（是否卡死）
+</code></pre><hr>
+<h2 id="第三部分各业务模块内部架构v30-修订">第三部分：各业务模块内部架构（v3.0 修订）</h2>
+<hr>
+<h3 id="31-strategy--策略模块">3.1 <code>strategy/</code> — 策略模块</h3>
+<pre tabindex="0"><code>strategy/
+├── core/                              # ← 使用者只看这里
+│   ├── event_strategy.py              #    EventStrategy 基类
+│   ├── vector_strategy.py             #    VectorStrategy 基类（弱状态）
+│   ├── ai_strategy.py                 #    AIStrategy 基类
+│   ├── context.py                     #    StrategyContext（明确定义）
+│   └── types.py                       #    Signal, SignalArray, TradeAction
+│
+├── indicators/
+│   ├── core.py                        #    IIndicator 接口
+│   ├── trend.py                       #    MA / EMA / MACD
+│   ├── oscillator.py                  #    RSI / KDJ
+│   ├── volatility.py                  #    布林带 / ATR
+│   └── volume.py                      #    OBV / VWAP
+│
+├── sizing/
+│   ├── core.py                        #    ISizer 接口
+│   ├── fixed.py
+│   ├── kelly.py
+│   └── atr_based.py
+│
+├── ai/                                # AI 集成层
+│   ├── core.py                        #    IModel / IFeaturePipeline
+│   ├── adapters/
+│   │   ├── model_adapter.py           #    ML模型 → 策略
+│   │   ├── signal_adapter.py          #    外部信号 → 策略
+│   │   └── code_adapter.py            #    LLM代码 → 策略（沙箱）
+│   ├── features/
+│   │   ├── technical.py
+│   │   └── fundamental.py
+│   └── models/
+│       ├── sklearn_wrapper.py
+│       ├── pytorch_wrapper.py
+│       └── rl_agent_wrapper.py
+│
+└── examples/
+</code></pre><p><strong>VectorStrategy — v3.0 修正为&quot;弱状态&quot;</strong>：</p>
+<pre tabindex="0"><code>VectorStrategy（v3.0）
+├── generate_signals(bars, state) → (SignalArray, state)
+│                                       ↑         ↑
+│                                    信号数组    更新后的状态
+│
+│   state 可以包含：
+│     - 滚动窗口计算的中间结果
+│     - Regime 状态（趋势/震荡）
+│     - 上一次信号（避免频繁翻转）
+│     - 在线特征缓存
+│
+│   与 EventStrategy 的区别：
+│     EventStrategy: 完全有状态，self.position / self.orders
+│     VectorStrategy: 弱状态，只有&#34;计算状态&#34;，没有&#34;交易状态&#34;
+│                     框架管理交易执行，策略只管信号
+│
+└── generate_sizing(bars, signals, state) → SizeArray
+</code></pre><p><strong>StrategyContext（v3.0 明确定义）</strong>：</p>
+<pre tabindex="0"><code>StrategyContext
+├── clock: IClock                       # ⭐ 统一时钟（v3.0 新增）
+├── account: IAccount                   # ⭐ 资金账户（替代简单 Portfolio）
+├── broker: IBroker                     # 下单接口
+├── data: DataView                      # 历史数据视图（防未来函数）
+├── params: dict                        # 策略参数
+├── logger: IStrategyLogger             # 策略决策日志
+│
+├── buy(symbol, qty, **kw) → str        # 便捷方法
+├── sell(symbol, qty, **kw) → str
+├── close(symbol) → str
+│
+├── now() → Timestamp                   # 代理到 clock.now()
+├── history(symbol, n_bars) → BarData   # 代理到 data，自动截断到 now()
+├── position(symbol) → Position         # 代理到 account
+└── equity() → float                    # 代理到 account
+</code></pre><hr>
+<h3 id="32-backtest--回测模块">3.2 <code>backtest/</code> — 回测模块</h3>
+<pre tabindex="0"><code>backtest/
+├── core/
+│   ├── engine.py                      # IBacktestEngine 接口
+│   ├── match.py                       # IMatchEngine + ISlippage
+│   └── types.py                       # BacktestConfig, BacktestResult, MatchResult
+│
+├── event_driven/
+│   ├── engine.py                      # EventDrivenEngine
+│   ├── broker.py                      # BacktestBroker（内部用 OMS 状态机）
+│   └── context_builder.py             # 构建 StrategyContext
+│
+├── vectorized/
+│   ├── engine.py                      # VectorizedEngine
+│   ├── signal_processor.py
+│   └── portfolio_calc.py
+│
+├── matching/
+│   ├── simple_match.py                # 开盘价成交
+│   ├── realistic_match.py             # 滑点 + bar 内事件排序
+│   └── tick_match.py                  # Tick 级
+│
+├── slippage/
+│   ├── no_slippage.py
+│   ├── fixed_slippage.py
+│   └── volume_slippage.py
+│
+├── optimizer/
+│   ├── core.py                        # IOptimizer
+│   ├── grid_search.py                 # 网格（并行）
+│   ├── walk_forward.py                # 滚动窗口
+│   └── genetic.py                     # 遗传算法
+│
+└── runner.py                          # 统一入口
+</code></pre><p><strong>MatchResult（v3.0 修正）</strong>：</p>
+<pre tabindex="0"><code>IMatchEngine
+├── process_bar(bar, orders, account, slippage) → MatchResult
+│
+│   增加 account 参数：撮合需要知道可用资金
+│   增加 slippage 参数：注入滑点模型
+
+MatchResult
+├── exec_reports: list[ExecutionReport]     # ⭐ 使用标准 ExecutionReport
+├── remaining_orders: list[Order]           # 未完全成交的
+└── cancelled_orders: list[CancelReason]    # 被取消的 + 原因
+
+Bar 内事件排序（v3.0 新增）：
+  realistic_match 的处理逻辑：
+    1. 先用 open 处理 market order
+    2. 判断 high/low 哪个先到达（基于 open→high/low 的距离启发）
+    3. 止损和止盈只能触发一个（先触达的优先）
+    4. 用 close 处理 MOC（Market-on-Close）
+</code></pre><p><strong>并行回测（v3.0 修正内存问题）</strong>：</p>
+<pre tabindex="0"><code>并行策略：
+  P1：multiprocessing + 共享内存数据
+      数据只加载一次到 shared memory（numpy mmap）
+      每个 worker 只拿参数，不拷贝数据
+      → 50 个 worker 不会用 50 倍内存
+
+  P2：Ray（分布式，可选）
+</code></pre><hr>
+<h3 id="33-live--实盘模块">3.3 <code>live/</code> — 实盘模块</h3>
+<pre tabindex="0"><code>live/
+├── core/
+│   ├── engine.py                      # ILiveEngine 接口
+│   ├── broker.py                      # IBroker（re-export）
+│   ├── asset_handler.py               # IAssetHandler（re-export）
+│   └── types.py                       # LiveConfig, ConnectionStatus
+│
+├── engine.py                          # LiveEngine 主引擎
+│
+├── brokers/                           # 经纪商适配器
+│   ├── xt_broker.py                   # A股（迅投 QMT）
+│   ├── ctp_broker.py                  # 期货（CTP）
+│   ├── futu_broker.py                 # 港美股（富途）
+│   ├── ib_broker.py                   # 美股期货（IB）
+│   ├── binance_broker.py              # 加密货币
+│   └── paper_broker.py               # 模拟盘
+│
+├── asset_handlers/                    # 资产差异化
+│   ├── equity_handler.py              # 股票
+│   ├── futures_handler.py             # 期货
+│   ├── crypto_handler.py              # 加密货币
+│   └── option_handler.py              # 期权
+│
+├── risk/                              # 实盘专属风控（补充 common/risk）
+│   ├── pre_trade_check.py
+│   ├── circuit_breaker.py
+│   └── trading_hours.py
+│
+├── connection/                        # ⭐ v3.0 新增：连接管理
+│   ├── reconnect.py                   # 断线重连
+│   ├── heartbeat.py                   # 心跳检测
+│   └── failover.py                    # 故障切换（P3）
+│
+└── recovery/                          # 崩溃恢复（P2）
+    ├── state_recovery.py
+    └── order_recovery.py
+</code></pre><p><strong>IBroker 回调模型（v3.0 修正）</strong>：</p>
+<pre tabindex="0"><code>IBroker
+├── submit_order(order) → order_id
+├── cancel_order(order_id) → bool
+├── get_order(order_id) → Order
+├── get_position(symbol) → Position
+├── get_portfolio() → Portfolio
+│
+├── on_execution_report(callback)       # ⭐ 统一回调（替代多个 callback）
+│     callback(ExecutionReport)          #    一个回调覆盖所有状态变更
+│
+└── on_connection_change(callback)      # ⭐ 连接状态回调
+      callback(ConnectionStatus)         #    CONNECTED / DISCONNECTED / RECONNECTING
+
+BacktestBroker 实现：
+  submit_order() → 内部同步撮合 → 构造 ExecutionReport → 立即回调
+  → 对策略完全透明，和实盘一样通过回调通知
+
+LiveBroker 实现：
+  submit_order() → 发送到交易所 → 等待异步回报 → 收到后构造 ExecutionReport → 回调
+</code></pre><hr>
+<h3 id="34-data--数据模块">3.4 <code>data/</code> — 数据模块</h3>
+<pre tabindex="0"><code>data/
+├── core/
+│   ├── feed.py                        # IDataFeed
+│   ├── store.py                       # IDataStore
+│   ├── pipeline.py                    # IDataPipeline
+│   └── types.py                       # DataQuery, DataResult
+│
+├── feeds/
+│   ├── akshare_feed.py
+│   ├── tushare_feed.py
+│   ├── csv_feed.py
+│   ├── dolphindb_feed.py
+│   └── binance_feed.py
+│
+├── realtime/
+│   ├── websocket_client.py
+│   └── quote_server.py
+│
+├── storage/
+│   ├── parquet_store.py               # 默认
+│   ├── hdf5_store.py
+│   └── cache.py                       # LRU
+│
+├── pipeline/
+│   ├── cleaner.py
+│   ├── adjuster.py                    # 复权
+│   ├── aligner.py                     # 多品种时间对齐（依赖 ExchangeCalendar）
+│   └── resampler.py
+│
+└── manager.py
+</code></pre><p><strong>内部计算层（v3.0 修正）</strong>：</p>
+<pre tabindex="0"><code>数据表示层次：
+  外部 API（用户看到）：   pandas DataFrame   ← 易用
+  内部计算（引擎内部）：   numpy ndarray      ← 快，C++友好
+  未来优化（P3）：        polars DataFrame   ← 更快，无 GIL
+
+规则：
+  IDataFeed 返回内部格式（numpy）
+  DataManager 提供 to_pandas() 便捷方法
+  所有引擎内部只用 numpy
+  用户在策略里可以选择用 pandas 或 numpy
+</code></pre><hr>
+<h3 id="35-report--报告模块">3.5 <code>report/</code> — 报告模块</h3>
+<pre tabindex="0"><code>report/
+├── core/
+│   ├── reporter.py                    # IReporter
+│   ├── metrics.py                     # IMetricsCalculator
+│   └── visualizer.py                  # IVisualizer
+│
+├── metrics/
+│   ├── returns.py                     # 总收益 / 年化 / 月度
+│   ├── risk.py                        # 最大回撤 / VaR / 波动率
+│   ├── ratios.py                      # 夏普 / 卡玛 / 索提诺
+│   └── trades.py                      # 胜率 / 盈亏比 / 持仓时长
+│
+├── visualizer/
+│   ├── plotly/                        # Plotly 实现（默认）
+│   │   ├── equity_chart.py
+│   │   ├── drawdown_chart.py
+│   │   ├── trade_chart.py
+│   │   ├── heatmap.py
+│   │   └── comparison.py
+│   └── matplotlib/                    # 备选
+│
+├── exporters/
+│   ├── html_exporter.py
+│   ├── pdf_exporter.py
+│   └── json_exporter.py
+│
+└── templates/
+</code></pre><hr>
+<h2 id="第四部分模块交互全景">第四部分：模块交互全景</h2>
+<h3 id="41-回测完整链路">4.1 回测完整链路</h3>
+<pre tabindex="0"><code>用户: result = runner.run(MyStrategy, &#34;SH.600000&#34;, &#34;2020-2024&#34;)
+
+  config.yaml
+      │
+  ┌───▼────────┐
+  │ Config     │ ← 解析配置，选择引擎/撮合/滑点
+  │ Container  │
+  └───┬────────┘
+      │ 注入依赖
+  ┌───▼────────────────────────────────────────────────────┐
+  │ BacktestEngine                                         │
+  │                                                        │
+  │   SimulatedClock ←──── 时间模型                         │
+  │        │                                               │
+  │   DataManager.load_bars() ←── 数据                     │
+  │        │                                               │
+  │   for bar in bars:                                     │
+  │     clock.advance(bar.timestamp)  ← 推进模拟时间        │
+  │     │                                                  │
+  │     context = build_context(clock, account, ...)       │
+  │     strategy.on_bar(bar, context)  ← 策略决策           │
+  │     │                                                  │
+  │     for order in new_orders:                           │
+  │       oms.submit(order)            ← OMS 状态机         │
+  │       risk_chain.check(order)      ← 风控检查           │
+  │       handler.validate(order)      ← 资产规则           │
+  │       │                                                │
+  │     match_result = match_engine.process(bar, orders)   │
+  │       │                                                │
+  │     for exec_report in match_result:                   │
+  │       oms.update(exec_report)      ← 更新订单状态       │
+  │       account.on_execution(exec_report) ← 更新资金      │
+  │       event_bus.publish(TradeEvent) ← 通知各模块        │
+  │       logger.log_trade(exec_report) ← 审计日志          │
+  │                                                        │
+  └────────────────────────┬───────────────────────────────┘
+                           │
+                  ┌────────▼─────────┐
+                  │ BacktestResult   │
+                  │ + Report 生成     │
+                  └──────────────────┘
+</code></pre><h3 id="42-实盘完整链路">4.2 实盘完整链路</h3>
+<pre tabindex="0"><code>  ┌─────────────────────────────────────────────────────────┐
+  │ LiveEngine                                              │
+  │                                                         │
+  │   RealtimeClock ←──── 真实时间                           │
+  │        │                                                │
+  │   DataFeed.subscribe() ←── 实时行情推送                  │
+  │        │                                                │
+  │   on_bar(bar):                                          │
+  │     context = build_context(clock, account, ...)        │
+  │     strategy.on_bar(bar, context)                       │
+  │     │                                                   │
+  │     for order in new_orders:                            │
+  │       risk_chain.check(order)                           │
+  │       handler.validate(order)                           │
+  │       handler.calc_margin(order)                        │
+  │       pre_trade_check(order)                            │
+  │       │                                                 │
+  │       oms.submit(order)                                 │
+  │       broker.submit_order(order)  ← 发送到交易所         │
+  │       │                                                 │
+  │   broker.on_execution_report(exec_report):  ← 异步回调  │
+  │       oms.update(exec_report)                           │
+  │       account.on_execution(exec_report)                 │
+  │       persistence.snapshot(account)  ← P2: 持久化       │
+  │       event_bus.publish(TradeEvent)                     │
+  │       logger.log_trade(exec_report)                     │
+  │       monitor.record_latency(...)   ← P2: 监控         │
+  │                                                         │
+  └─────────────────────────────────────────────────────────┘
+</code></pre><h3 id="43-事件流全景">4.3 事件流全景</h3>
+<pre tabindex="0"><code>事件生产者                    EventBus              事件消费者
+─────────────────────────────────────────────────────────────
+BacktestEngine ─┐                              ┌─ Report（记录指标）
+LiveEngine ─────┤──→ TradeEvent ──────────────→├─ Logger（审计日志）
+                │                              ├─ Monitor（延迟统计）P2
+                │                              └─ Notifier（钉钉）P3
+                │
+BacktestEngine ─┤──→ OrderEvent ──────────────→├─ OMS（状态机更新）
+LiveEngine ─────┤                              ├─ Account（冻结/解冻）
+                │                              └─ Logger（订单日志）
+                │
+RiskChain ──────┤──→ RiskEvent ───────────────→├─ Logger（风控日志）
+                │                              ├─ Monitor（告警）P2
+                │                              └─ CircuitBreaker P2
+                │
+LiveEngine ─────┤──→ SystemEvent ─────────────→├─ Monitor（健康状态）P2
+                │    (连接/断开/恢复)            └─ Recovery（恢复）P2
+</code></pre><hr>
+<h2 id="第五部分接口稳定性与扩展点">第五部分：接口稳定性与扩展点</h2>
+<h3 id="51-接口变更分级">5.1 接口变更分级</h3>
+<pre tabindex="0"><code>Level 0（禁止修改）：
+  types/ 下已发布的数据结构字段
+  core/ 下已发布的接口方法签名
+  OrderStateMachine 的状态转换规则
+
+Level 1（需审查）：
+  接口新增方法（必须有默认实现）
+  数据结构新增可选字段
+  新增事件类型
+
+Level 2（自由）：
+  模块内部实现
+  新增实现类（新 Broker、新 Feed、新 MatchEngine）
+  优化、Bug 修复
+</code></pre><h3 id="52-扩展点一览">5.2 扩展点一览</h3>
+<table>
+	<thead>
+			<tr>
+					<th>需求</th>
+					<th>操作</th>
+					<th>影响范围</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>接入新数据源</td>
+					<td>新增 <code>data/feeds/xxx_feed.py</code></td>
+					<td>只改 data 模块</td>
+			</tr>
+			<tr>
+					<td>接入新经纪商</td>
+					<td>新增 <code>live/brokers/xxx_broker.py</code></td>
+					<td>只改 live 模块</td>
+			</tr>
+			<tr>
+					<td>支持新资产类别</td>
+					<td>新增 <code>live/asset_handlers/xxx_handler.py</code></td>
+					<td>只改 live 模块</td>
+			</tr>
+			<tr>
+					<td>新撮合模型</td>
+					<td>新增 <code>backtest/matching/xxx_match.py</code></td>
+					<td>只改 backtest 模块</td>
+			</tr>
+			<tr>
+					<td>新滑点模型</td>
+					<td>新增 <code>backtest/slippage/xxx.py</code></td>
+					<td>只改 backtest 模块</td>
+			</tr>
+			<tr>
+					<td>新风控规则</td>
+					<td>新增 <code>risk/rules/xxx.py</code></td>
+					<td>只改 risk 模块</td>
+			</tr>
+			<tr>
+					<td>新报告格式</td>
+					<td>新增 <code>report/exporters/xxx.py</code></td>
+					<td>只改 report 模块</td>
+			</tr>
+			<tr>
+					<td>新 AI 模型类型</td>
+					<td>新增 <code>strategy/ai/models/xxx.py</code></td>
+					<td>只改 strategy 模块</td>
+			</tr>
+			<tr>
+					<td>加速核心计算</td>
+					<td>替换 matching/portfolio 的实现为 C++</td>
+					<td>只改对应 impl 文件</td>
+			</tr>
+	</tbody>
+</table>
+<p><strong>所有扩展操作都不需要修改 <code>core/</code> 里的任何接口。</strong></p>
+<hr>
+<h2 id="第六部分最终目录结构">第六部分：最终目录结构</h2>
+<pre tabindex="0"><code>quant_platform/
+│
+├── types/                             # P1 通用数据类型
+│   ├── market.py                      #   BarData, Tick, Symbol
+│   ├── trading.py                     #   Order, Trade, Position
+│   ├── enums.py                       #   Side, OrderType, AssetType...
+│   └── context.py                     #   StrategyContext
+│
+├── time/                              # P1 ⭐ 时间系统
+│   ├── core/
+│   ├── clocks/                        #   SimulatedClock / RealtimeClock
+│   └── calendars/                     #   A股 / 期货 / 美股 / Crypto
+│
+├── accounting/                        # P1 ⭐ 资金会计
+│   ├── core/
+│   ├── account.py
+│   ├── position_book.py
+│   ├── ledger.py
+│   └── settlement.py
+│
+├── oms/                               # P1 ⭐ 订单管理
+│   ├── core/
+│   ├── state_machine.py
+│   ├── order_manager.py
+│   └── idempotency.py
+│
+├── risk/                              # P1 统一风控
+│   ├── core/
+│   ├── rules/
+│   └── chain.py
+│
+├── events/                            # P1 事件系统
+│   ├── core/
+│   ├── sync_bus.py
+│   └── async_bus.py
+│
+├── config/                            # P1 配置管理
+│   ├── schema.py
+│   ├── loader.py
+│   └── container.py
+│
+├── logging/                           # P1 审计日志
+│   ├── core/
+│   ├── trade_logger.py
+│   └── strategy_logger.py
+│
+├── data/                              # P1 数据模块
+│   ├── core/
+│   ├── feeds/
+│   ├── storage/
+│   ├── pipeline/
+│   └── manager.py
+│
+├── strategy/                          # P1 策略模块
+│   ├── core/
+│   ├── indicators/
+│   ├── sizing/
+│   ├── ai/
+│   └── examples/
+│
+├── backtest/                          # P1 回测模块
+│   ├── core/
+│   ├── event_driven/
+│   ├── vectorized/
+│   ├── matching/
+│   ├── slippage/
+│   ├── optimizer/
+│   └── runner.py
+│
+├── live/                              # P1 实盘模块
+│   ├── core/
+│   ├── brokers/
+│   ├── asset_handlers/
+│   ├── risk/
+│   ├── connection/
+│   └── engine.py
+│
+├── report/                            # P1 报告模块
+│   ├── core/
+│   ├── metrics/
+│   ├── visualizer/
+│   ├── exporters/
+│   └── templates/
+│
+├── persistence/                       # P2 状态持久化
+│   ├── core/
+│   ├── sqlite_store.py
+│   └── recovery.py
+│
+├── scheduler/                         # P2 调度系统
+│   ├── core/
+│   └── simple_scheduler.py
+│
+├── monitor/                           # P2 监控系统
+│   ├── core/
+│   ├── health_check.py
+│   └── alerter.py
+│
+├── coordinator/                       # P3 多策略协调
+│   ├── core/
+│   └── capital_allocator.py
+│
+├── research/                          # P3 研究环境
+│   ├── notebooks/
+│   └── factor_analysis/
+│
+├── utils/                             # 通用工具
+│   ├── time_utils.py
+│   ├── symbol_utils.py
+│   └── math_utils.py
+│
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   ├── regression/
+│   ├── benchmark/
+│   └── fixtures/
+│
+├── config.yaml
+├── setup.py
+└── README.md
+</code></pre><hr>
+<h2 id="第七部分分阶段实施路线图">第七部分：分阶段实施路线图</h2>
+<blockquote>
+<p>[!IMPORTANT]
+<strong>Phase 1 的唯一目标</strong>：单机、单策略、稳定回测 → 稳定实盘
+<strong>不要在 Phase 1 做任何 P2/P3 的事情</strong></p>
+</blockquote>
+<h3 id="phase-1核心骨架4-6-周">Phase 1：核心骨架（4-6 周）</h3>
+<pre tabindex="0"><code>Week 1-2：地基
+  ✅ types/          所有数据结构
+  ✅ time/           SimulatedClock + A股 Calendar
+  ✅ events/         SyncEventBus（同步版）
+  ✅ config/         YAML 加载 + 基础 schema
+  ✅ logging/        简易交易日志
+
+Week 2-3：数据 + 策略
+  ✅ data/           AKShareFeed + CSVFeed + ParquetStore
+  ✅ strategy/       EventStrategy + VectorStrategy 基类
+  ✅ accounting/     Account + PositionBook（单币种）
+  ✅ oms/            OrderStateMachine + 基础 OrderManager
+
+Week 3-4：回测
+  ✅ backtest/       EventDrivenEngine + SimpleMatch
+  ✅ risk/           基础风控（最大回撤、仓位限制）
+  ✅ report/         基础指标 + Plotly 权益曲线
+
+Week 4-5：回测完善
+  ✅ backtest/       VectorizedEngine
+  ✅ backtest/       RealisticMatch + 滑点
+  ✅ backtest/       GridSearch 并行优化
+  ✅ report/         完整指标 + 参数热力图
+
+Week 5-6：实盘基础
+  ✅ live/           LiveEngine + PaperBroker
+  ✅ live/           EquityHandler + FuturesHandler
+  ✅ time/           RealtimeClock
+  ✅ events/         AsyncEventBus
+
+里程碑：能跑通 A股日线均线策略的回测 + 模拟盘
+</code></pre><h3 id="phase-2稳定可靠4-周">Phase 2：稳定可靠（4 周）</h3>
+<pre tabindex="0"><code>  ✅ persistence/    SQLite 状态快照 + 崩溃恢复
+  ✅ live/           真实 Broker 对接（XTBroker 或 CTPBroker）
+  ✅ live/           断线重连 + 心跳
+  ✅ scheduler/      盘前/盘后任务
+  ✅ monitor/        基础监控 + 告警
+  ✅ accounting/     多品种结算 + 期货逐日盯市
+  ✅ oms/            幂等性 + 对账
+
+里程碑：能在真实市场稳定运行一周不崩溃
+</code></pre><h3 id="phase-3规模智能持续迭代">Phase 3：规模智能（持续迭代）</h3>
+<pre tabindex="0"><code>  ✅ strategy/ai/    ML/LLM 策略适配器
+  ✅ coordinator/    多策略资金分配
+  ✅ research/       Notebook 研究环境
+  ✅ monitor/        Web Dashboard
+  ✅ 性能优化         C++/Rust 加速热点模块
+  ✅ 分布式           Ray 并行回测
+</code></pre><hr>
+<h2 id="第八部分v20--v30-变更追踪">第八部分：v2.0 → v3.0 变更追踪</h2>
+<table>
+	<thead>
+			<tr>
+					<th>#</th>
+					<th>评审意见</th>
+					<th>评估</th>
+					<th>v3.0 处理</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>1</td>
+					<td>缺统一时钟模型</td>
+					<td>✅ 完全正确</td>
+					<td>新增 <code>time/</code>，5 种时间定义</td>
+			</tr>
+			<tr>
+					<td>2</td>
+					<td>EventBus 过简</td>
+					<td>⚠️ 部分采纳</td>
+					<td>明确契约（顺序/投递/背压），P1 用同步，P2 用异步</td>
+			</tr>
+			<tr>
+					<td>3</td>
+					<td>Portfolio 太薄</td>
+					<td>✅ 完全正确</td>
+					<td>独立 <code>accounting/</code>（Account + PositionBook + Ledger）</td>
+			</tr>
+			<tr>
+					<td>4</td>
+					<td>缺订单状态机</td>
+					<td>✅ 完全正确</td>
+					<td>新增 <code>oms/</code>，完整状态转换图</td>
+			</tr>
+			<tr>
+					<td>5</td>
+					<td>common 膨胀</td>
+					<td>⚠️ 方向对时机早</td>
+					<td>内部重组为独立子模块，不拆顶层</td>
+			</tr>
+			<tr>
+					<td>6</td>
+					<td>Strategy 耦合</td>
+					<td>⚠️ 不采纳</td>
+					<td>EventStrategy 的 <code>context.buy()</code> 是正确范式</td>
+			</tr>
+			<tr>
+					<td>7</td>
+					<td>VectorStrategy 无状态</td>
+					<td>✅ 正确</td>
+					<td>改为&quot;弱状态&quot;，<code>generate_signals(bars, state)</code></td>
+			</tr>
+			<tr>
+					<td>8</td>
+					<td>缺调度系统</td>
+					<td>✅ 正确</td>
+					<td>新增 <code>scheduler/</code>（P2）</td>
+			</tr>
+			<tr>
+					<td>9</td>
+					<td>缺监控系统</td>
+					<td>✅ 正确</td>
+					<td>新增 <code>monitor/</code>（P2）</td>
+			</tr>
+			<tr>
+					<td>10</td>
+					<td>多策略协调</td>
+					<td>✅ 正确但 P3</td>
+					<td>新增 <code>coordinator/</code>（P3 预留）</td>
+			</tr>
+			<tr>
+					<td>11</td>
+					<td>缺 Research</td>
+					<td>⚠️ 偏工具链</td>
+					<td>作为 P3 附属目录</td>
+			</tr>
+			<tr>
+					<td>12</td>
+					<td>pandas 瓶颈</td>
+					<td>✅ 正确</td>
+					<td>内部 numpy，用户层可选 pandas</td>
+			</tr>
+			<tr>
+					<td>13</td>
+					<td>分阶段落地</td>
+					<td>✅ 最重要建议</td>
+					<td>全模块标注 P1/P2/P3</td>
+			</tr>
+			<tr>
+					<td>14</td>
+					<td>IBroker 回调</td>
+					<td>✅ 正确</td>
+					<td>统一 <code>on_execution_report()</code></td>
+			</tr>
+			<tr>
+					<td>15</td>
+					<td>幂等性/断线</td>
+					<td>✅ 正确</td>
+					<td><code>oms/idempotency.py</code> + <code>live/connection/</code></td>
+			</tr>
+	</tbody>
+</table>
+</div>
+  </article>
+
+      </main>
+
+      <footer>
+        Built with Hugo. Content managed from Obsidian.
+      </footer>
+    </div>
+  </body>
+</html>
